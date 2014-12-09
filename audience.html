@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+ <html>
+ <title> Who want's in? </title>
+    <head>
+<center><h1 style="font-family:bookman old style; font-size:30px">  Let's Foos <br> Click a box and wait till you have four players! </h1></center>
+<center> <table><tr><td>
+<img src="http://1.bp.blogspot.com/-cq1nBq4YzN8/TtFh9egFVeI/AAAAAAAAXOM/KThXD_hIud0/s1600/0foosball2.gif"></td><td>
+<img src="http://3.bp.blogspot.com/-cQUmyd8Ly5I/TtFiIyCMV8I/AAAAAAAAXOc/a_T8lByBRXk/s1600/0foosball1.gif"></td><td>
+<img src="http://2.bp.blogspot.com/-P0hD--RdZ0Q/TtEsiDWxmyI/AAAAAAAAA-8/NAk-2EsPie4/s1600/babyfoot7.gif"></td></tr></table></center>
+
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script src="http://cdn.peerjs.com/0.3/peer.min.js"></script>
+
+        <script type="text/javascript">
+        
+            var socket = io.connect('http://104.131.38.199:8080/');
+            
+            socket.on('connect', function() {
+                console.log("Connected");
+                if (peer_id != null) {
+                    // We already have a peer_id so let's send it
+                    socket.emit('peer_id', peer_id);
+                }
+            });
+            socket.on('init',function(data){
+                console.log('init');
+                updateCheckBoxes(data.currentState);
+            })
+            var letsPlay = function (tag){
+                console.log("someonesDown" + tag);
+                var data = {};
+                data[tag.value] = tag.checked; 
+                socket.emit('someonesDown', data);
+                console.log(data);
+
+            };
+            socket.on('someonesDownServer', function(data) {
+                console.log("someonesDownServer");
+                console.log(data);
+                updateCheckBoxes(data.currentState);
+            });
+
+            var initcanvas = function() {
+            
+                canvas = document.getElementById('mycanvas');
+                context = canvas.getContext('2d');
+            
+            };
+
+            function updateCheckBoxes(arr){
+                if(arr[0]==true) document.getElementById('p1').checked = true;
+                else document.getElementById('p1').checked = false; 
+                if(arr[0]==true) document.getElementById('p2').checked = true;
+                else document.getElementById('p2').checked = false;
+                if(arr[0]==true) document.getElementById('p3').checked = true;
+                else document.getElementById('p3').checked = false;
+                if(arr[0]==true) document.getElementById('p4').checked = true;
+                else document.getElementById('p4 ').checked = false;   
+            }
+
+            document.addEventListener("DOMContentLoaded", initcanvas, false);
+            
+            /////////////
+            
+            // We'll use a global variable to hold on to our id from PeerJS
+            var peer_id = null;
+
+            // Register for an API Key: http://peerjs.com/peerserver
+            var peer = new Peer({key: 'cmj26s9b8mtv5cdi'});
+
+            // Get an ID from the PeerJS server     
+            peer.on('open', function(id) {
+              console.log('My peer ID is: ' + id);
+              peer_id = id;
+              if (socket != null) {
+                socket.emit('peer_id', peer_id);
+              }
+            });
+            
+            peer.on('call', function(incoming_call) {
+                console.log("Got a call!");
+                incoming_call.answer(null); // Answer the call with our stream from getUserMedia
+                incoming_call.on('stream', function(remoteStream) {  // we receive a getUserMedia stream from the remote caller
+                    // And attach it to a video object
+                    var videoElement = document.getElementById('myvideo');
+                    videoElement.src = window.URL.createObjectURL(remoteStream) || remoteStream;
+                    videoElement.play();
+                    
+                });
+            });
+            
+         
+        </script>
+        <style>
+            body {
+                background-color: #81DAF5;
+            }
+            
+            #myvideo {
+                visibility: visible;
+
+            }
+            
+            #video_div {
+                position: absolute;
+                top: 420px;
+                left: 460px;
+                width: 500px;
+                margin: 0, auto;
+                z-index: 0;
+                /*border-style: solid;
+                border-width: 5px;*/
+            }
+
+            #canvas_div {
+                position: absolute;
+                top: 0px;
+                left: 0px;
+                width: 854px;
+                margin: 0, auto;
+                z-index: 2;
+            }
+                        
+           
+        </style>        
+    </head>
+    <body>
+        <div id="content_wrapper">
+            <div id="canvas_div">
+                <canvas width="300" height=".5" id="mycanvas"></canvas>
+            </div>
+            <div id="video_div">
+                <video width="500" height="500" id="myvideo"></video>
+            </div>
+        
+        </div>
+
+<center><h2>The FoosBallers await, click a box and join them!</center></h2>
+<div id= "play"></div>
+<center><table><tr><td>
+<b><input type="checkbox" name="play"  onclick="letsPlay(this);" value="P1" id="p1"> I am down to play <br></td><td></b>
+<b><input type="checkbox" name="play"  onclick="letsPlay(this);" value="P2" id ="p2"> I am down to play<br></td><td></b>
+<b><input type="checkbox" name="play"  onclick="letsPlay(this);" value="P3" id="p3"> I am down to play<br></td><td></b>
+<b><input type="checkbox"  name="play"  onclick="letsPlay(this);" value="P4" id="p4"> I am down to play </td></tr></table></center></b>
+        </div>
+    </body>
+</html>
